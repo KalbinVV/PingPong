@@ -4,6 +4,7 @@
 #include "Window.h"
 #include "Renderer.h"
 #include "Tile.h"
+#include "Ball.h"
 
 class Game{
 private:
@@ -11,15 +12,16 @@ private:
     Renderer renderer;
     Tile player;
     Tile enemy;
-    Tile ball;
+    Ball ball;
     int tileSpeed;
     int ballSpeed;
-    Vec2 ballVelocity;
+    bool isNotLose;
+    bool autoGame;
     void handleEvents();
     void update();
     void render();
     void checkIntersect();
-    bool isNotLose;
+    void updateEnemyPosition();
 public:
     Game(const char* title, int width, int height, Uint32 rendererFlags, Vec2 tileSize, Vec2 ballSize);
 };

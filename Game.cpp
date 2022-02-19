@@ -17,12 +17,12 @@ Game::Game(const char* title, int width, int height, Uint32 rendererFlags, Vec2 
         y: window.getHeight() / 2
     });
     renderer.bindWindow(&window);
-    tileSpeed = 10;
-    ballSpeed = 4;
-    ballVelocity = Vec2({
+    tileSpeed = 15;
+    ballSpeed = 8;
+    ball.setVelocity(Vec2({
         x: -ballSpeed,
         y: ballSpeed / 2
-    });
+    }));
     isNotLose = true;
     while(window.isOpen()){
         handleEvents();
@@ -41,6 +41,7 @@ void Game::handleEvents(){
         }else{
             if(event.type == SDL_KEYDOWN){
                 switch(event.key.keysym.scancode){
+                    case SDL_SCANCODE_DOWN:
                     case SDL_SCANCODE_S:{
                         Vec2 newPosition = player.getPosition().add(0, tileSpeed);
                         if(newPosition.y <= window.getHeight() - player.getSize().y){
@@ -48,6 +49,7 @@ void Game::handleEvents(){
                         }
                         break;
                     }
+                    case SDL_SCANCODE_UP:
                     case SDL_SCANCODE_W:{
                         Vec2 newPosition = player.getPosition().add(0, -tileSpeed);
                         if(newPosition.y >= 0){
@@ -55,19 +57,15 @@ void Game::handleEvents(){
                         }
                         break;
                     }
-                    case SDL_SCANCODE_DOWN:{
-                        Vec2 newPosition = enemy.getPosition().add(0, tileSpeed);
-                        if(newPosition.y <= window.getHeight() - enemy.getSize().y){
-                            enemy.setPosition(newPosition);
+                    case SDL_SCANCODE_R:
+                        if(!isNotLose){
+                            isNotLose = true;
+                            ball.setPosition(Vec2{
+                                x: window.getWidth() / 2,
+                                y: window.getHeight() / 2
+                            });
                         }
                         break;
-                    }
-                    case SDL_SCANCODE_UP:{
-                        Vec2 newPosition = enemy.getPosition().add(0, -tileSpeed);
-                        if(newPosition.y >= 0){
-                            enemy.setPosition(newPosition);
-                        }
-                    }
                     default:
                         break;
                 }
@@ -98,18 +96,32 @@ void Game::checkIntersect(){
     if(SDL_HasIntersection(&ballRect, &playerRect) || SDL_HasIntersection(&ballRect, &enemyRect)){
         srand(time(0));
         int choose = rand() % 2;
-        ballVelocity.x = -ballVelocity.x;
-        ballVelocity.y = (choose ? -ballVelocity.y : ballVelocity.y);
+        Vec2 resultVelocity(ball.getVelocity());
+        resultVelocity.x = -resultVelocity.x;
+        resultVelocity.y = (choose ? -resultVelocity.y : resultVelocity.y);
+        ball.setVelocity(resultVelocity);
     }else if(ballRect.y <= 0 || ballRect.y >= window.getHeight() - ballRect.h){
-        ballVelocity.y = -ballVelocity.y;
+        Vec2 resultVelocity(ball.getVelocity());
+        resultVelocity.y = -resultVelocity.y;
+        ball.setVelocity(resultVelocity);
     }else if(ballRect.x <= 0 || ballRect.x >= window.getWidth() - ballRect.h){
         isNotLose = false;
     }
 }
 
+void Game::updateEnemyPosition(){
+    if(ball.getPosition().y > enemy.getPosition().y && enemy.getPosition().y <= window.getHeight() - enemy.getSize().y){
+        enemy.setPosition(enemy.getPosition().add(0, ballSpeed));
+    }else if(ball.getPosition().y < enemy.getPosition().y && enemy.getPosition().y >= 0){
+        enemy.setPosition(enemy.getPosition().add(0, -ballSpeed));
+    }
+}
+
 void Game::update(){
+    Vec2 ballVelocity = ball.getVelocity();
     ball.setPosition(ball.getPosition().add(ballVelocity.x, ballVelocity.y));
     checkIntersect();
+    updateEnemyPosition();
 }
 
 void Game::render(){
