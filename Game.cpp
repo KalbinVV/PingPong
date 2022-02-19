@@ -125,21 +125,23 @@ void Game::update(){
 }
 
 void Game::render(){
+    SDL_Color screenColor;
     if(isNotLose){
-        renderer.clearScreen(SDL_Color{
+        screenColor = SDL_Color{
             r: 0,
             g: 0,
             b: 0,
             a: 255
-        });
+        };
     }else{
-        renderer.clearScreen(SDL_Color{
+        screenColor = SDL_Color{
             r: 255,
             g: 0,
             b: 0,
             a: 255
-        });
+        };
     }
+    renderer.clearScreen(screenColor);
     renderer.draw(&player);
     renderer.draw(&enemy);
     renderer.draw(&ball);
