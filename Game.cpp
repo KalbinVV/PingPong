@@ -1,6 +1,5 @@
 #include "Game.h"
-#include <random>
-#include <ctime>
+#include <cmath>
 
 Game::Game(const char* title, int width, int height, Uint32 rendererFlags, Vec2 tileSize, Vec2 ballSize)
 : window(title, width, height), renderer(rendererFlags), player(tileSize), enemy(tileSize), ball(ballSize){
@@ -93,12 +92,19 @@ void Game::checkIntersect(){
         w: enemy.getSize().x,
         h: enemy.getSize().y
     };
-    if(SDL_HasIntersection(&ballRect, &playerRect) || SDL_HasIntersection(&ballRect, &enemyRect)){
-        srand(time(0));
-        int choose = rand() % 2;
+    if(SDL_HasIntersection(&ballRect, &playerRect)){
         Vec2 resultVelocity(ball.getVelocity());
         resultVelocity.x = -resultVelocity.x;
-        resultVelocity.y = (choose ? -resultVelocity.y : resultVelocity.y);
+        if(ballRect.y < playerRect.y - player.getSize().y / 2){
+            resultVelocity.y = abs(resultVelocity.y);
+        }
+        ball.setVelocity(resultVelocity);
+    }else if(SDL_HasIntersection(&ballRect, &enemyRect)){
+        Vec2 resultVelocity(ball.getVelocity());
+        resultVelocity.x = -resultVelocity.x;
+        if(ballRect.y < enemyRect.y - enemy.getSize().y / 2){
+            resultVelocity.y = abs(resultVelocity.y);
+        }
         ball.setVelocity(resultVelocity);
     }else if(ballRect.y <= 0 || ballRect.y >= window.getHeight() - ballRect.h){
         Vec2 resultVelocity(ball.getVelocity());
